@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
@@ -19,19 +18,23 @@ type ConfigStruct struct {
 	DatabaseMaxConnIdleTime   time.Duration `mapstructure:"DATABASE_MAX_CONN_IDLE_TIME"`
 	DatabaseHealthCheckPeriod time.Duration `mapstructure:"DATABASE_HEALTH_CHECK_PERIOD"`
 	DatabaseConnectTimeout    time.Duration `mapstructure:"DATABASE_CONNECT_TIMEOUT"`
+
+	RedisAddr     string `mapstructure:"REDIS_ADDR"`
+	RedisPassword string `mapstructure:"REDIS_PASSWORD"`
+	RedisDB       int    `mapstructure:"REDIS_DB"`
+
+	SecretKey string `mapstructure:"SECRET_KEY"`
 }
 
 var Config ConfigStruct
 
-func Initialize() (err error) {
+func Initialize() error {
 	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println()
 		return err
 	}
 
-	err = viper.Unmarshal(&Config)
-	return
+	return viper.Unmarshal(&Config)
 }

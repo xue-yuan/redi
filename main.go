@@ -5,22 +5,31 @@ import (
 	"os"
 	"os/signal"
 	"redi/config"
-
 	"redi/database"
+	"redi/middleware"
+	"redi/redis"
+	"redi/router"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
 	if err := config.Initialize(); err != nil {
-		fmt.Println()
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	fmt.Println(config.Config)
 
 	if err := database.Initialize(); err != nil {
-		fmt.Println()
+		fmt.Println(err)
+		os.Exit(1)
 	}
 	defer database.Pool.Close()
+
+	if err := redis.Initialize(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer redis.Client.Close()
 
 	app := fiber.New()
 
@@ -32,19 +41,11 @@ func main() {
 		app.Shutdown()
 	}()
 
-	app.Get("/heartbeat", func(c *fiber.Ctx) error {
-		return c.JSON((map[string]bool{"is_alive": true}))
-	})
-
-	v1 := app.Group("/v1")
-	{
-		v1.Get("/foo", func(c *fiber.Ctx) error {
-			return c.JSON(map[string]string{"foo": "bar"})
-		})
-	}
+	app.Use(middleware.SetupContext)
+	router.SetupRoutes(app)
 
 	if err := app.Listen(":5278"); err != nil {
-		fmt.Println("panic")
+		fmt.Println(err)
 	}
 
 	fmt.Println("Running cleanup tasks...")

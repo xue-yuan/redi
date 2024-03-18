@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"strings"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
@@ -11,11 +13,17 @@ func NewValidator() *validator.Validate {
 	_ = validate.RegisterValidation("uuid", func(fl validator.FieldLevel) bool {
 		field := fl.Field().String()
 
-		if _, err := uuid.Parse(field); err != nil {
-			return true
+		index := strings.Index(field, "-")
+		if index == -1 {
+			return false
 		}
 
-		return false
+		u := field[index+1:]
+		if _, err := uuid.Parse(u); err != nil {
+			return false
+		}
+
+		return true
 	})
 
 	return validate
