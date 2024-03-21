@@ -1,7 +1,15 @@
 package controllers
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"fmt"
+	"redi/constants"
 
-func GetUser(ctx *fiber.Ctx) error {
-	return nil
+	"github.com/gofiber/fiber/v2"
+)
+
+func GetUser(c *fiber.Ctx) error {
+	userID := c.Locals(constants.UserID)
+	fmt.Println(userID)
+
+	return constants.EmptyResponse(c)
 }

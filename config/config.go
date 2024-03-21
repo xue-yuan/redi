@@ -24,6 +24,9 @@ type ConfigStruct struct {
 	RedisDB       int    `mapstructure:"REDIS_DB"`
 
 	SecretKey string `mapstructure:"SECRET_KEY"`
+
+	TokenTTL        time.Duration `mapstructure:"TOKEN_TTL"`
+	OudatedTokenTTL time.Duration `mapstructure:"OUTDATED_TOKEN_TTL"`
 }
 
 var Config ConfigStruct

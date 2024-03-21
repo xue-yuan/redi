@@ -26,11 +26,12 @@ func GenerateShortURL(s string, x int) string {
 }
 
 func GenerateToken(uid string) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["user_id"] = uid
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	claims := jwt.MapClaims{
+		"user_id": uid,
+		"exp":     time.Now().Add(config.Config.TokenTTL).Unix(),
+	}
 
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(config.Config.SecretKey))
 	if err != nil {
 		return "", err

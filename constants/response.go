@@ -27,3 +27,7 @@ func ForbiddenResponse(c *fiber.Ctx, msg error) error {
 func OkResponse(c *fiber.Ctx, data *fiber.Map) error {
 	return c.Status(fiber.StatusOK).JSON(data)
 }
+
+func EmptyResponse(c *fiber.Ctx) error {
+	return c.SendStatus(fiber.StatusNoContent)
+}

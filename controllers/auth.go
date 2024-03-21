@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"context"
-	"errors"
+	"redi/config"
 	"redi/constants"
 	"redi/models"
+	"redi/redis"
 	"redi/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -42,7 +43,7 @@ func Login(c *fiber.Ctx) error {
 	if err != nil {
 		return constants.ServerErrorResponse(c, err)
 	} else if !ok {
-		return constants.UnauthorizedResponse(c, errors.New("invalid username or password"))
+		return constants.UnauthorizedResponse(c, constants.ErrInvalidUsernameOrPassword)
 	}
 
 	t, err := utils.GenerateToken(user.UserID)
@@ -54,9 +55,26 @@ func Login(c *fiber.Ctx) error {
 }
 
 func Logout(c *fiber.Ctx) error {
-	return nil
+	ctx := c.Locals(constants.CTX).(context.Context)
+	userID := c.Locals(constants.UserID).(string)
+
+	_, credentials := utils.GetAuthorizationSchemeAndParam(c.Get("Authorization"))
+	redis.Client.Set(ctx, credentials, userID, config.Config.TokenTTL)
+
+	return constants.EmptyResponse(c)
 }
 
 func RefreshToken(c *fiber.Ctx) error {
-	return nil
+	ctx := c.Locals(constants.CTX).(context.Context)
+	userID := c.Locals(constants.UserID).(string)
+
+	_, credentials := utils.GetAuthorizationSchemeAndParam(c.Get("Authorization"))
+	redis.Client.Set(ctx, credentials, userID, config.Config.OudatedTokenTTL)
+
+	t, err := utils.GenerateToken(userID)
+	if err != nil {
+		return constants.ServerErrorResponse(c, err)
+	}
+
+	return constants.OkResponse(c, &fiber.Map{"token": t})
 }
