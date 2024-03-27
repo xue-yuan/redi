@@ -134,7 +134,6 @@ func DeleteShortURL(c *fiber.Ctx) error {
 	}
 
 	if ok, err := userURL.HasPermission(ctx); err != nil {
-		fmt.Println(0)
 		return constants.InternalServerErrorResponse(c, err)
 	} else if !ok {
 		return constants.ForbiddenResponse(c, constants.ErrOperationNotPermitted)
@@ -151,12 +150,10 @@ func DeleteShortURL(c *fiber.Ctx) error {
 	}
 
 	if err := url.Get(ctx, tx); err != nil {
-		fmt.Println(1)
 		return constants.InternalServerErrorResponse(c, err)
 	}
 
 	if err := url.Delete(ctx, tx); err != nil {
-		fmt.Println(2)
 		return constants.InternalServerErrorResponse(c, err)
 	}
 

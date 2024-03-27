@@ -54,3 +54,25 @@ func (s *Statistics) GetAll(ctx context.Context, tx database.Tx, urlID string) (
 
 	return
 }
+
+func (s *Statistic) Create(ctx context.Context, tx database.Tx) (err error) {
+	query := `
+		INSERT INTO statistics (url_id, ip_address, user_agent, referer_url, latitude, Longitude)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+
+	if _, err = tx.Exec(
+		ctx,
+		query,
+		s.URLID,
+		s.IPAddress,
+		s.UserAgent,
+		s.RefererURL,
+		s.Latitude,
+		s.Longitude,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -22,11 +22,17 @@ func RedirectURL(c *fiber.Ctx) error {
 	}
 
 	if err := u.GetOpenGraphByShortURL(ctx, db); err == pgx.ErrNoRows {
-		fmt.Println(1, err)
 		return constants.NotFoundResponse(c)
 	} else if err != nil {
-		fmt.Println(2, err)
 		return constants.InternalServerErrorResponse(c, err)
+	}
+
+	stat := &models.Statistic{
+		URLID: u.URLID,
+	}
+
+	if err := stat.Create(ctx, db); err != nil {
+		// log
 	}
 
 	if utils.IsStructEmpty(u.OpenGraph) {
