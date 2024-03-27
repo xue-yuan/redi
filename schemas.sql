@@ -41,7 +41,7 @@ CREATE TABLE open_graphs(
   id SERIAL PRIMARY KEY,
   url_id VARCHAR(63) UNIQUE NOT NULL,
   title VARCHAR(255) NOT NULL,
-  descriptions VARCHAR(511) NOT NULL,
+  description VARCHAR(511) NOT NULL,
   image VARCHAR(255) NOT NULL,
 
   FOREIGN KEY(url_id) REFERENCES urls(url_id) ON DELETE CASCADE

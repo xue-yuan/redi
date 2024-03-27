@@ -27,6 +27,8 @@ type ConfigStruct struct {
 
 	TokenTTL        time.Duration `mapstructure:"TOKEN_TTL"`
 	OudatedTokenTTL time.Duration `mapstructure:"OUTDATED_TOKEN_TTL"`
+
+	ImageFolder string `mapstructure:"IMAGE_FOLDER"`
 }
 
 var Config ConfigStruct

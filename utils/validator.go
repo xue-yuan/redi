@@ -1,6 +1,10 @@
 package utils
 
 import (
+	"fmt"
+	"os"
+	"redi/config"
+	"redi/constants"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -26,6 +30,30 @@ func NewValidator() *validator.Validate {
 		return true
 	})
 
+	_ = validate.RegisterValidation("exist", func(fl validator.FieldLevel) bool {
+		field := fl.Field().String()
+
+		if field == "" {
+			return true
+		}
+
+		if _, err := os.Stat(fmt.Sprintf("%s/%s", config.Config.ImageFolder, field)); err != nil {
+			return false
+		}
+
+		return true
+	})
+
+	_ = validate.RegisterValidation("order", func(fl validator.FieldLevel) bool {
+		field := fl.Field().String()
+
+		if field != string(constants.ASC) && field != string(constants.DESC) {
+			return false
+		}
+
+		return true
+	})
+
 	return validate
 }
 
@@ -38,3 +66,5 @@ func ValidatorErrors(err error) map[string]string {
 
 	return fields
 }
+
+// func

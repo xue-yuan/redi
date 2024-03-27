@@ -34,16 +34,16 @@ func Auth(t constants.AuthType) fiber.Handler {
 		if (err == constants.ErrJWTMissing) && (t == constants.SoftAuth) {
 			return c.Next()
 		} else if err != nil {
-			return constants.BadRequestResponse(c, err)
+			return constants.UnauthorizedResponse(c, err)
 		}
 
 		exp, err := claims.GetExpirationTime()
 		if err != nil {
-			return constants.BadRequestResponse(c, err)
+			return constants.UnauthorizedResponse(c, err)
 		}
 
 		if exp.Time.Before(time.Now()) {
-			return constants.BadRequestResponse(c, jwtware.ErrJWTMissingOrMalformed)
+			return constants.UnauthorizedResponse(c, jwtware.ErrJWTMissingOrMalformed)
 		}
 
 		c.Locals(constants.UserID, claims["user_id"])

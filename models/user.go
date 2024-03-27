@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"redi/constants"
 	"redi/utils"
 	"time"
@@ -10,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 )
 
@@ -24,21 +22,8 @@ type User struct {
 
 type UserURL struct {
 	ID     int    `db:"id" json:"id"`
-	URLID  string `db:"url_id" json:"url_id"`
 	UserID string `db:"user_id" json:"user_id"`
-}
-
-func hashPassword(p string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(p), 14)
-	if err != nil {
-		return "", err
-	}
-
-	return string(bytes), nil
-}
-
-func IsValidPassword(p, h string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(h), []byte(p)) == nil
+	URLID  string `db:"url_id" json:"url_id"`
 }
 
 func (u *User) Login(ctx context.Context, p string) (bool, error) {
@@ -54,14 +39,14 @@ func (u *User) Login(ctx context.Context, p string) (bool, error) {
 		return false, err
 	}
 
-	*u, err = pgx.CollectExactlyOneRow[User](rows, pgx.RowToStructByName[User])
+	*u, err = pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[User])
 	if err == pgx.ErrNoRows {
 		return false, nil
 	} else if err != nil {
 		return false, err
 	}
 
-	return IsValidPassword(p, u.Password), nil
+	return utils.IsValidPassword(u.Password, p), nil
 }
 
 func (u *User) Create(ctx context.Context) error {
@@ -78,7 +63,7 @@ func (u *User) Create(ctx context.Context) error {
 		return err
 	}
 
-	h, err := hashPassword(u.Password)
+	h, err := utils.HashPassword(u.Password)
 	if err != nil {
 		return err
 	}
@@ -88,14 +73,34 @@ func (u *User) Create(ctx context.Context) error {
 		return err
 	}
 
-	*u, err = pgx.CollectExactlyOneRow[User](rows, pgx.RowToStructByName[User])
+	*u, err = pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[User])
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == pgerrcode.UniqueViolation {
-			return errors.New("duplicate username")
+			return constants.ErrDuplicateUsername
 		}
 
 		return err
 	}
 
 	return nil
+}
+
+func (u *UserURL) HasPermission(ctx context.Context) (bool, error) {
+	db := ctx.Value(constants.DB).(*pgxpool.Pool)
+	query := `
+		SELECT COUNT(*)
+		FROM user_urls
+		WHERE user_id = $1 AND url_id = $2
+	`
+	count := 0
+
+	if err := db.QueryRow(ctx, query, u.UserID, u.URLID).Scan(&count); err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }

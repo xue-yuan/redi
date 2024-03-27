@@ -1,4 +1,4 @@
-package controllers
+package v1
 
 import (
 	"context"
@@ -16,16 +16,16 @@ func Register(c *fiber.Ctx) error {
 	user := &models.User{}
 
 	if err := c.BodyParser(user); err != nil {
-		return constants.ClientErrorResponse(c, err)
+		return constants.BadRequestResponse(c, err)
 	}
 
 	if err := user.Create(ctx); err != nil {
-		return constants.ServerErrorResponse(c, err)
+		return constants.InternalServerErrorResponse(c, err)
 	}
 
 	t, err := utils.GenerateToken(user.UserID)
 	if err != nil {
-		return constants.ServerErrorResponse(c, err)
+		return constants.InternalServerErrorResponse(c, err)
 	}
 
 	return constants.OkResponse(c, &fiber.Map{"token": t})
@@ -36,19 +36,19 @@ func Login(c *fiber.Ctx) error {
 	user := &models.User{}
 
 	if err := c.BodyParser(user); err != nil {
-		return constants.ClientErrorResponse(c, err)
+		return constants.BadRequestResponse(c, err)
 	}
 
 	ok, err := user.Login(ctx, user.Password)
 	if err != nil {
-		return constants.ServerErrorResponse(c, err)
+		return constants.InternalServerErrorResponse(c, err)
 	} else if !ok {
 		return constants.UnauthorizedResponse(c, constants.ErrInvalidUsernameOrPassword)
 	}
 
 	t, err := utils.GenerateToken(user.UserID)
 	if err != nil {
-		return constants.ServerErrorResponse(c, err)
+		return constants.InternalServerErrorResponse(c, err)
 	}
 
 	return constants.OkResponse(c, &fiber.Map{"token": t})
@@ -73,8 +73,18 @@ func RefreshToken(c *fiber.Ctx) error {
 
 	t, err := utils.GenerateToken(userID)
 	if err != nil {
-		return constants.ServerErrorResponse(c, err)
+		return constants.InternalServerErrorResponse(c, err)
 	}
 
 	return constants.OkResponse(c, &fiber.Map{"token": t})
+}
+
+func ResetPassword(c *fiber.Ctx) error {
+
+	return nil
+}
+
+func VerifyPassword(c *fiber.Ctx) error {
+
+	return nil
 }

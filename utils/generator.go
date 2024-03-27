@@ -21,8 +21,8 @@ func GenerateUUID(tag string) (string, error) {
 	return fmt.Sprintf("%s-%s", tag, u), nil
 }
 
-func GenerateShortURL(s string, x int) string {
-	return Base62Encode(sha256.Sum256([]byte(s)))[:SHORT_URL_LENGTH+x]
+func GenerateShortURL(s, userID string, x int) string {
+	return Base62Encode(sha256.Sum256([]byte(s + userID)))[:SHORT_URL_LENGTH+x]
 }
 
 func GenerateToken(uid string) (string, error) {

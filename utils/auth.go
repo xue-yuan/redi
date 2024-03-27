@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Claims struct {
@@ -18,4 +19,17 @@ func GetAuthorizationSchemeAndParam(v string) (string, string) {
 	}
 
 	return vs[0], vs[1]
+}
+
+func IsValidPassword(h, p string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(h), []byte(p)) == nil
+}
+
+func HashPassword(p string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(p), 14)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bytes), nil
 }

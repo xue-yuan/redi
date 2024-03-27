@@ -10,5 +10,7 @@ const (
 )
 
 var (
-	ErrJWTMissing = errors.New("missing JWT")
+	ErrJWTMissing            = errors.New("missing JWT")
+	ErrOperationNotPermitted = errors.New("operation not permitted")
+	ErrDuplicateUsername     = errors.New("duplicate username")
 )

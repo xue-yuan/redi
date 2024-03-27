@@ -11,6 +11,7 @@ import (
 	"redi/router"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html/v2"
 )
 
 func main() {
@@ -31,7 +32,10 @@ func main() {
 	}
 	defer redis.Client.Close()
 
-	app := fiber.New()
+	engine := html.New("./templates", ".html")
+	app := fiber.New(fiber.Config{
+		Views: engine,
+	})
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

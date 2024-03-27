@@ -1,28 +1,47 @@
 package router
 
 import (
+	"redi/config"
 	"redi/controllers"
+	v1 "redi/controllers/v1"
 	"redi/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func SetupRoutes(app *fiber.App) {
+	app.Static("/image", config.Config.ImageFolder)
+	app.Get("/heartbeat", controllers.Heartbeat)
+	app.Get("/redirect/:short_url", controllers.RedirectURL)
 
-	api := app.Group("/api")
-	api.Get("/heartbeat", controllers.Heartbeat)
-
-	v1 := api.Group("/v1")
+	apiV1 := app.Group("/api/v1")
 	{
-		user := v1.Group("/user")
-		user.Post("/register", controllers.Register)
-		user.Post("/login", controllers.Login)
-		user.Post("/logout", middleware.HardAuth(), controllers.Logout)
-		user.Post("/refresh_token", middleware.HardAuth(), controllers.RefreshToken)
-		// user.Get("/", middleware.HardAuth(), controllers.GetUser)
-		user.Get("/", middleware.SoftAuth(), controllers.GetUser)
+		user := apiV1.Group("/user")
+		{
+			user.Post("/register", v1.Register)
+			user.Post("/login", v1.Login)
+			user.Post("/logout", middleware.HardAuth(), v1.Logout)
+			user.Post("/refresh_token", middleware.HardAuth(), v1.RefreshToken)
+			user.Get("/", middleware.HardAuth(), v1.GetUser)
+		}
 
-		url := v1.Group("url")
-		url.Post("/", middleware.SoftAuth(), controllers.CreateShortURL)
+		url := apiV1.Group("/url")
+		{
+			url.Get("/list", middleware.HardAuth(), v1.GetShortURLs)
+			url.Get("/", middleware.HardAuth(), v1.GetShortURL)
+			url.Post("/", middleware.SoftAuth(), v1.CreateShortURL)
+			url.Delete("/", middleware.HardAuth(), v1.DeleteShortURL)
+			url.Post("/upload_image", middleware.HardAuth(), v1.UploadImage)
+			url.Post("/open_graph", middleware.HardAuth(), v1.CreateOpenGraph)
+			url.Put("/open_graph", middleware.HardAuth(), v1.UpdateOpenGraph)
+			url.Delete("/open_graph", middleware.HardAuth(), v1.DeleteOpenGraph)
+			url.Post("/customization", middleware.HardAuth(), v1.CreateCustomizedShortURL)
+		}
+
+		stat := apiV1.Group("/stat")
+		{
+			stat.Get("/count", middleware.HardAuth(), v1.StatCount)
+			stat.Get("/list", middleware.HardAuth(), v1.GetStats)
+		}
 	}
 }
