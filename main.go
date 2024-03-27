@@ -48,7 +48,7 @@ func main() {
 	app.Use(middleware.SetupContext)
 	router.SetupRoutes(app)
 
-	if err := app.Listen(":5278"); err != nil {
+	if err := app.Listen(fmt.Sprintf("%s:%d", config.Config.Host, config.Config.Port)); err != nil {
 		fmt.Println(err)
 	}
 

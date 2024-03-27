@@ -29,6 +29,9 @@ type ConfigStruct struct {
 	OudatedTokenTTL time.Duration `mapstructure:"OUTDATED_TOKEN_TTL"`
 
 	ImageFolder string `mapstructure:"IMAGE_FOLDER"`
+
+	Host string `mapstructure:"HOST"`
+	Port int    `mapstructure:"PORT"`
 }
 
 var Config ConfigStruct
