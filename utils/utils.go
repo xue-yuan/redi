@@ -1,6 +1,10 @@
 package utils
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func IsStructEmpty(s interface{}) bool {
 	rv := reflect.ValueOf(s)
@@ -16,4 +20,13 @@ func IsStructEmpty(s interface{}) bool {
 	}
 
 	return true
+}
+
+func GetIP(c *fiber.Ctx) (ip string) {
+	ip = c.Get("X-Forwarded-For")
+	if ip == "" {
+		return c.IP()
+	}
+
+	return ip
 }

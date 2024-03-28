@@ -40,7 +40,7 @@ func RedirectURL(c *fiber.Ctx) error {
 
 	stat := &models.Statistic{
 		URLID:      u.URLID,
-		IPAddress:  c.IP(),
+		IPAddress:  utils.GetIP(c),
 		UserAgent:  c.Get("User-Agent"),
 		RefererURL: c.Get("Referer"),
 	}
