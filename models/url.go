@@ -3,8 +3,10 @@ package models
 import (
 	"context"
 	"fmt"
+	"redi/config"
 	"redi/constants"
 	"redi/database"
+	"redi/redis"
 	"redi/utils"
 	"time"
 
@@ -17,10 +19,10 @@ import (
 const MAX_ATTEMPT = 10
 
 type OpenGraph struct {
-	URLID       *string `db:"url_id" json:"url_id"`
-	Title       *string `db:"title" json:"title"`
-	Description *string `db:"description" json:"description"`
-	Image       *string `db:"image" json:"image" validate:"exist"`
+	URLID       string `db:"url_id" json:"url_id"`
+	Title       string `db:"title" json:"title"`
+	Description string `db:"description" json:"description"`
+	Image       string `db:"image" json:"image" validate:"exist"`
 }
 
 type URL struct {
@@ -69,6 +71,14 @@ func (u *URLPage) GetAll(ctx context.Context, userID string, q *PageQuery) error
 
 	return nil
 }
+
+// func NewOpenGraph() *OpenGraph {
+// 	return &OpenGraph{
+// 		Title:       "",
+// 		Description: "",
+// 		Image:       "",
+// 	}
+// }
 
 func (u *URL) Get(ctx context.Context, tx database.Tx) error {
 	query := `
@@ -237,10 +247,53 @@ func (u *URL) GetOpenGraphByShortURL(ctx context.Context, tx database.Tx) error 
 		return err
 	}
 
-	*u, err = pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[URL])
-	if err == pgx.ErrNoRows {
-		return nil
-	} else if err != nil {
+	if *u, err = pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[URL]); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *URL) HMGetOpenGraphByShortURL(ctx context.Context) error {
+	fields := []string{"url", "url_id", "title", "description", "image"}
+
+	result, err := redis.Client.HMGet(ctx, u.ShortURL, fields...).Result()
+	if err != nil {
+		return err
+	}
+
+	for i, field := range fields {
+		if result[i] != nil {
+			switch field {
+			case "url":
+				u.URL = result[i].(string)
+			case "url_id":
+				u.URLID = result[i].(string)
+			case "title":
+				u.Title = result[i].(string)
+			case "description":
+				u.Description = result[i].(string)
+			case "image":
+				u.Image = result[i].(string)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (u *URL) HMSetOpenGraphByShortURL(ctx context.Context) error {
+	if err := redis.Client.HMSet(ctx, u.ShortURL, map[string]interface{}{
+		"url":         u.URL,
+		"url_id":      u.URLID,
+		"title":       u.Title,
+		"description": u.Description,
+		"image":       u.Image,
+	}).Err(); err != nil {
+		return err
+	}
+
+	if err := redis.Client.Expire(ctx, u.ShortURL, config.Config.ShortURLTTL).Err(); err != nil {
 		return err
 	}
 

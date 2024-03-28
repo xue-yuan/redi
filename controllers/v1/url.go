@@ -161,8 +161,8 @@ func DeleteShortURL(c *fiber.Ctx) error {
 		return constants.InternalServerErrorResponse(c, err)
 	}
 
-	if url.Image != nil {
-		removeImage(*url.OpenGraph.Image)
+	if url.Image != "" {
+		removeImage(url.OpenGraph.Image)
 	}
 
 	return constants.EmptyResponse(c)
@@ -202,20 +202,20 @@ func CreateOpenGraph(c *fiber.Ctx) error {
 
 	og := &models.OpenGraph{}
 	if err := c.BodyParser(og); err != nil {
-		removeImage(*og.Image)
+		removeImage(og.Image)
 		return constants.BadRequestResponse(c, err)
 	}
 
 	q := &models.URLIDQuery{}
 	if err := c.QueryParser(q); err != nil {
-		removeImage(*og.Image)
+		removeImage(og.Image)
 		return constants.BadRequestResponse(c, err)
 	}
 
-	og.URLID = &q.URLID
+	og.URLID = q.URLID
 	validate := utils.NewValidator()
 	if err := validate.Struct(og); err != nil {
-		removeImage(*og.Image)
+		removeImage(og.Image)
 		return constants.InternalServerErrorResponse(c, err)
 	}
 
@@ -225,15 +225,15 @@ func CreateOpenGraph(c *fiber.Ctx) error {
 	}
 
 	if ok, err := userURL.HasPermission(ctx); err != nil {
-		removeImage(*og.Image)
+		removeImage(og.Image)
 		return constants.InternalServerErrorResponse(c, err)
 	} else if !ok {
-		removeImage(*og.Image)
+		removeImage(og.Image)
 		return constants.ForbiddenResponse(c, constants.ErrOperationNotPermitted)
 	}
 
 	if err := og.Create(ctx); err != nil {
-		removeImage(*og.Image)
+		removeImage(og.Image)
 		return constants.InternalServerErrorResponse(c, err)
 	}
 
@@ -249,27 +249,27 @@ func UpdateOpenGraph(c *fiber.Ctx) error {
 
 	og := &models.UpdateOpenGraphRequest{}
 	if err := c.BodyParser(og); err != nil {
-		removeImageByOrder(og.NewImage, *og.Image)
+		removeImageByOrder(og.NewImage, og.Image)
 		return constants.BadRequestResponse(c, err)
 	}
 
 	tx, err := db.BeginTx(ctx, constants.TxOptions())
 	if err != nil {
-		removeImageByOrder(og.NewImage, *og.Image)
+		removeImageByOrder(og.NewImage, og.Image)
 		return constants.InternalServerErrorResponse(c, err)
 	}
 	defer tx.Rollback(ctx)
 
 	q := &models.URLIDQuery{}
 	if err := c.QueryParser(q); err != nil {
-		removeImageByOrder(og.NewImage, *og.Image)
+		removeImageByOrder(og.NewImage, og.Image)
 		return constants.BadRequestResponse(c, err)
 	}
 
-	og.URLID = &q.URLID
+	og.URLID = q.URLID
 	validate := utils.NewValidator()
 	if err := validate.Struct(og); err != nil {
-		removeImageByOrder(og.NewImage, *og.Image)
+		removeImageByOrder(og.NewImage, og.Image)
 		return constants.InternalServerErrorResponse(c, err)
 	}
 
@@ -279,24 +279,24 @@ func UpdateOpenGraph(c *fiber.Ctx) error {
 	}
 
 	if ok, err := userURL.HasPermission(ctx); err != nil {
-		removeImageByOrder(og.NewImage, *og.Image)
+		removeImageByOrder(og.NewImage, og.Image)
 		return constants.InternalServerErrorResponse(c, err)
 	} else if !ok {
-		removeImageByOrder(og.NewImage, *og.Image)
+		removeImageByOrder(og.NewImage, og.Image)
 		return constants.ForbiddenResponse(c, constants.ErrOperationNotPermitted)
 	}
 
 	if err = og.Update(ctx, tx); err != nil {
-		removeImageByOrder(og.NewImage, *og.Image)
+		removeImageByOrder(og.NewImage, og.Image)
 		return constants.InternalServerErrorResponse(c, err)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		removeImageByOrder(og.NewImage, *og.Image)
+		removeImageByOrder(og.NewImage, og.Image)
 		return constants.InternalServerErrorResponse(c, err)
 	}
 
-	removeImageByOrder(*og.Image, og.NewImage)
+	removeImageByOrder(og.Image, og.NewImage)
 	return constants.EmptyResponse(c)
 }
 
@@ -311,7 +311,7 @@ func DeleteOpenGraph(c *fiber.Ctx) error {
 	}
 
 	og := &models.OpenGraph{
-		URLID: &q.URLID,
+		URLID: q.URLID,
 	}
 	userURL := &models.UserURL{
 		UserID: userID,
@@ -328,7 +328,7 @@ func DeleteOpenGraph(c *fiber.Ctx) error {
 		return constants.InternalServerErrorResponse(c, err)
 	}
 
-	removeImage(*og.Image)
+	removeImage(og.Image)
 
 	return constants.EmptyResponse(c)
 }

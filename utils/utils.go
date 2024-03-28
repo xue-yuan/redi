@@ -10,7 +10,7 @@ func IsStructEmpty(s interface{}) bool {
 
 	for i := 0; i < rv.NumField(); i++ {
 		field := rv.Field(i)
-		if !field.IsNil() {
+		if field.String() != "" {
 			return false
 		}
 	}

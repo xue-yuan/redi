@@ -2,9 +2,11 @@
 
 > 🚧 WIP 🚧
 
-1. User
-2. Cache
-3. Password
-4. Open Graph
-5. Analytics
-6. Custom url
+- [x] User
+- [x] Cache
+- [x] Open Graph
+- [ ] Analytics
+- [x] Custom url
+
+1. 換網址
+2. Frontend

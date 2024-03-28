@@ -18,21 +18,36 @@ func RedirectURL(c *fiber.Ctx) error {
 	shortURL := c.Params("short_url")
 
 	u := &models.URL{
-		ShortURL: shortURL,
+		ShortURL:  shortURL,
+		OpenGraph: models.OpenGraph{},
 	}
 
-	if err := u.GetOpenGraphByShortURL(ctx, db); err == pgx.ErrNoRows {
-		return constants.NotFoundResponse(c)
-	} else if err != nil {
+	if err := u.HMGetOpenGraphByShortURL(ctx); err != nil {
 		return constants.InternalServerErrorResponse(c, err)
 	}
 
+	if u.URL == "" {
+		if err := u.GetOpenGraphByShortURL(ctx, db); err == pgx.ErrNoRows {
+			return constants.NotFoundResponse(c)
+		} else if err != nil {
+			return constants.InternalServerErrorResponse(c, err)
+		}
+
+		if err := u.HMSetOpenGraphByShortURL(ctx); err != nil {
+			return constants.InternalServerErrorResponse(c, err)
+		}
+	}
+
 	stat := &models.Statistic{
-		URLID: u.URLID,
+		URLID:      u.URLID,
+		IPAddress:  c.IP(),
+		UserAgent:  c.Get("User-Agent"),
+		RefererURL: c.Get("Referer"),
 	}
 
 	if err := stat.Create(ctx, db); err != nil {
 		// log
+		fmt.Println(err)
 	}
 
 	if utils.IsStructEmpty(u.OpenGraph) {
@@ -44,6 +59,6 @@ func RedirectURL(c *fiber.Ctx) error {
 		"ShortURL":    u.ShortURL,
 		"Title":       u.Title,
 		"Description": u.Description,
-		"Image":       fmt.Sprintf("image/%s", *u.Image),
+		"Image":       fmt.Sprintf("/image/%s", u.Image),
 	})
 }
