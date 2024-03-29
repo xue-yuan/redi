@@ -39,10 +39,11 @@ func RedirectURL(c *fiber.Ctx) error {
 	}
 
 	stat := &models.Statistic{
-		URLID:      u.URLID,
-		IPAddress:  utils.GetIP(c),
-		UserAgent:  c.Get("User-Agent"),
-		RefererURL: c.Get("Referer"),
+		URLID:       u.URLID,
+		IPAddress:   utils.GetIP(c),
+		UserAgent:   c.Get("User-Agent"),
+		RefererURL:  c.Get("Referer"),
+		CountryCode: c.Get("X-Country-Code"),
 	}
 
 	if err := stat.Create(ctx, db); err != nil {

@@ -30,8 +30,7 @@ CREATE TABLE statistics(
   ip_address VARCHAR(45),
   user_agent VARCHAR(255),
   referer_url VARCHAR(2000),
-  latitude DECIMAL(10, 8),
-  Longitude DECIMAL(11, 8),
+  country_code VARCHAR(4),
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY(url_id) REFERENCES urls(url_id) ON DELETE CASCADE

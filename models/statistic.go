@@ -9,14 +9,13 @@ import (
 )
 
 type Statistic struct {
-	ID         int       `db:"int" json:"id"`
-	URLID      string    `db:"url_id" json:"url_id"`
-	IPAddress  string    `db:"ip_address" json:"ip_address" validate:"ip"`
-	UserAgent  string    `db:"user_agent" json:"user_agent"`
-	RefererURL string    `db:"referer_url" json:"referer_url"`
-	Latitude   int       `db:"latitude" json:"latitude"`
-	Longitude  int       `db:"longitude" json:"longitude"`
-	CreatedAt  time.Time `db:"created_at" json:"created_at"`
+	ID          int       `db:"int" json:"id"`
+	URLID       string    `db:"url_id" json:"url_id"`
+	IPAddress   string    `db:"ip_address" json:"ip_address" validate:"ip"`
+	UserAgent   string    `db:"user_agent" json:"user_agent"`
+	RefererURL  string    `db:"referer_url" json:"referer_url"`
+	CountryCode string    `db:"country_code" json:"country_code"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 }
 
 type Statistics []Statistic
@@ -57,8 +56,8 @@ func (s *Statistics) GetAll(ctx context.Context, tx database.Tx, urlID string) (
 
 func (s *Statistic) Create(ctx context.Context, tx database.Tx) (err error) {
 	query := `
-		INSERT INTO statistics (url_id, ip_address, user_agent, referer_url, latitude, Longitude)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO statistics (url_id, ip_address, user_agent, referer_url, country_code)
+		VALUES ($1, $2, $3, $4, $5)
 	`
 
 	if _, err = tx.Exec(
@@ -68,8 +67,7 @@ func (s *Statistic) Create(ctx context.Context, tx database.Tx) (err error) {
 		s.IPAddress,
 		s.UserAgent,
 		s.RefererURL,
-		s.Latitude,
-		s.Longitude,
+		s.CountryCode,
 	); err != nil {
 		return err
 	}
